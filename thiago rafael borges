@@ -1,0 +1,119 @@
+<?php
+// Cria uma conexão com a base de dados
+$servername = "localhost";
+$username = "root";
+$password = "";
+$dbname = "fatec_araras";
+
+ 
+
+$conn = new mysqli($servername, $username, $password, $dbname);
+
+ 
+
+// Verifica se a conexão foi bem sucedida
+if ($conn->connect_error) {
+  die("Conexão falhou: " . $conn->connect_error);
+}
+
+ 
+
+// Cria uma tabela para armazenar os dados dos alunos e do estacionamento
+$sql = "CREATE TABLE IF NOT EXISTS alunos (
+  id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  nome VARCHAR(50) NOT NULL,
+  ra VARCHAR(10) NOT NULL,
+  placa VARCHAR(15) NOT NULL
+)";
+
+ 
+
+if ($conn->query($sql) === TRUE) {
+  echo "Tabela alunos criada com sucesso";
+} else {
+  echo "Erro ao criar a tabela: " . $conn->error;
+}
+
+ 
+
+// Cria uma tabela para armazenar os dados do estacionamento
+$sql = "CREATE TABLE IF NOT EXISTS estacionamento (
+  id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  aluno_id INT(6) UNSIGNED NOT NULL,
+  data DATE NOT NULL,
+  hora TIME NOT NULL,
+  FOREIGN KEY (aluno_id) REFERENCES alunos(id)
+)";
+
+ 
+
+if ($conn->query($sql) === TRUE) {
+  echo "Tabela estacionamento criada com sucesso";
+} else {
+  echo "Erro ao criar a tabela: " . $conn->error;
+}
+
+ 
+
+// Cria um formulário para inserir os dados dos alunos e do estacionamento
+echo "<form action='cadastro.php' method='post'>";
+echo "<h1>Cadastro de Alunos</h1>";
+echo "<p>Nome Completo: <input type='text' name='nome' required></p>";
+echo "<p>Registro Acadêmico: <input type='text' name='ra' required></p>";
+echo "<p>Placa do Carro ou Moto: <input type='text' name='placa' required></p>";
+echo "<p><input type='submit' value='Cadastrar'></p>";
+echo "</form>";
+
+ 
+
+// Cria um formulário para inserir os dados do estacionamento
+echo "<form action='cadastro.php' method='post'>";
+echo "<h1>Cadastro de Estacionamento</h1>";
+echo "<p>Aluno: <input type='text' name='aluno_id' required></p>";
+echo "<p>Data: <input type='date' name='data' required></p>";
+echo "<p>Hora: <input type='time' name='hora' required></p>";
+echo "<p><input type='submit' value='Cadastrar'></p>";
+echo "</form>";
+
+ 
+
+// Cria uma função para validar os dados inseridos no formulário e inserir na tabela correspondente
+function validar($dados) {
+  // Verifica se o nome, o ra e a placa estão preenchidos
+  if (empty($dados['nome']) || empty($dados['ra']) || empty($dados['placa'])) {
+    return false;
+  }
+  
+  // Verifica se o registro acadêmico é válido (inteiro e maior que zero)
+  if (!is_numeric($dados['ra']) || $dados['ra'] <=0) {
+    return false;
+  }
+  
+  // Verifica se a placa é válida (completa e não contém caracteres especiais)
+  if (!preg_match("/^[A-Z0-9]{2}-[A-Z0-9]{2}$/", $dados['placa'])) {
+    return false;
+  }
+  
+  // Se todos os dados forem válidos, retorna true e insere na tabela de alunos
+  return true;
+}
+
+ 
+
+// Cria um loop para receber os dados do formulário e validar-os
+if (isset($_POST['submit'])) {
+  
+   // Obtém os dados do formulário
+   $nome = $_POST['nome'];
+   $ra = $_POST['ra'];
+   $placa = $_POST['placa'];
+   
+   // Verifica se os dados estão validados
+   if (validar($dados)) {
+     
+     // Converte a placa em letras maiúsculas e separa por hífen
+     $placa = strtoupper($placa);
+     $placas[] = $placa;
+     
+     // Insere os dados na tabela de alunos com chave primária auto-incrementada
+     $sql = "INSERT INTO alunos (nome, ra, placa) VALUES ('$nome', '$ra', '$placas[0]')";
